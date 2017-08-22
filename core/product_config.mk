@@ -113,8 +113,7 @@ all_product_configs := $(call get-product-makefiles,\
     $(SRC_TARGET_DIR)/product/AndroidProducts.mk)
 else
  ifneq ($(SCORPION_BUILD),)
-    $(call import-products, device/scorpion/$(SCORPION_BUILD)/device.mk)
-    all_product_configs := device/scorpion/$(SCORPION_BUILD)/device.mk
+    all_product_configs := device/*/$(SCORPION_BUILD)/scorpion.mk
   else
     # Read in all of the product definitions specified by the AndroidProducts.mk
     # files in the tree.
