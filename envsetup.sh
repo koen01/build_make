@@ -144,6 +144,14 @@ function check_product()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
+
+    if (echo -n $1 | grep -q -e "^scorpion_") ; then
+       SCORPION_BUILD=$(echo -n $1 | sed -e 's/^scorpion_//g')
+    else
+       SCORPION_BUILD=
+    fi
+    export SCORPION_BUILD
+
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \
         TARGET_BUILD_TYPE= \
