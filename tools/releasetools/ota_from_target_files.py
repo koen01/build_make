@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008 The Android Open Source Project
 #
@@ -137,6 +138,10 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
   --backup <boolean>
       Enable or disable the execution of backuptool.sh.
       Disabled by default.
+
+  --brotli <boolean>
+     Enable (default) or disable usage of brotli
+
 """
 
 from __future__ import print_function
@@ -191,9 +196,10 @@ OPTIONS.extracted_input = None
 OPTIONS.key_passwords = []
 OPTIONS.override_device = 'auto'
 OPTIONS.backuptool = False
+OPTIONS.brotli = True
 
 METADATA_NAME = 'META-INF/com/android/metadata'
-UNZIP_PATTERN = ['IMAGES/*', 'META/*']
+UNZIP_PATTERN = ['IMAGES/*', 'META/*', 'INSTALL/*', 'SYSTEM/build.prop']
 
 
 def SignOutput(temp_zip_name, output_zip_name):
@@ -382,12 +388,13 @@ def AddCompatibilityArchive(target_zip, output_zip, system_included=True,
 
 
 def CopyInstallTools(output_zip):
-  install_path = os.path.join(OPTIONS.input_tmp, "INSTALL")
-  for root, subdirs, files in os.walk(install_path):
-     for f in files:
-      install_source = os.path.join(root, f)
-      install_target = os.path.join("install", os.path.relpath(root, install_path), f)
-      output_zip.write(install_source, install_target)
+  oldcwd = os.getcwd()
+  os.chdir(os.getenv('OUT'))
+  for root, subdirs, files in os.walk("install"):
+    for f in files:
+      p = os.path.join(root, f)
+      output_zip.write(p, p)
+  os.chdir(oldcwd)
 
 
 def WriteFullOTAPackage(input_zip, output_zip):
@@ -497,19 +504,34 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   system_progress = 0.75
 
-  script.Print("**************************************************");
-  script.Print(" ____    ________   _____   ____    ____          ");
-  script.Print("/\\  _`\\ /\\_____  \\ /\\  __`\\/\\  _`\\ /\\  _`\\         ");
-  script.Print("\\ \\ \\L\\_\\/____//'/'\\ \\ \\/\\ \\ \\,\\L\\_\\ \\ \\L\\\\");
-  script.Print(" \\ \\ \\L_L    //'/'  \\ \\ \\ \\ \\/_\\__ \\ \\ ,__/       ");
-  script.Print("  \\ \\ \\/, \\ //'/'___ \\ \\ \\_\\ \\/\\ \\L\\ \\ \\ \\/   ");
-  script.Print("   \\ \\____/ /\\_______\\\\ \\_____\\ `\\____\\ \\_\\       ");
-  script.Print("    \\/___/  \\/_______/ \\/_____/\\/_____/\\/_/   ");
-  script.Print("                                                   ");
-  script.Print("                  AOSP Oreo                        ");
-  script.Print("          A Ground Zero Roms Project               ");
-  script.Print("***************************************************");
-
+  script.Print(" *************************************************  ");
+  script.Print("  ______                         .__               ");
+  script.Print(" /   __/ ____  _________________ |__| ____   ____  ");
+  script.Print(" \___ \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ ");
+  script.Print(" /     \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ ");
+  script.Print("/____  /\___  >____/|__|  |   __/|__|\____/|___|  /");
+  script.Print("     \/     \/            |__|                  \/ ");
+  script.Print("                                                    ");
+  script.Print("                  A GZOSP based rom                 ");
+  script.Print(" *************************************************  ");    
+                                                                                  
+  if GetBuildProp("ro.scorpion.version", OPTIONS.info_dict) is not None:
+  
+    version = GetBuildProp("ro.build.version.release", OPTIONS.info_dict)
+    manufacturer = GetBuildProp("ro.product.manufacturer", OPTIONS.info_dict)
+    model = GetBuildProp("ro.product.device", OPTIONS.info_dict)
+    buildday = GetBuildProp("ro.build.date", OPTIONS.info_dict)
+    script.Print(" ******************* Rom Info ******************** "); 
+    script.Print(" Version: %s"%(version));
+    script.Print("");
+    script.Print(" Manufacturer: %s"%(manufacturer));
+    script.Print("");
+    script.Print(" Model: %s"%(model));
+    script.Print("");
+    script.Print(" Build date: %s"%(buildday));
+    script.Print("");
+    script.Print(" ************************************************* ");
+ 
   if OPTIONS.wipe_user_data:
     system_progress -= 0.1
   if HasVendorPartition(input_zip):
@@ -530,7 +552,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   # do it.
   system_tgt = GetImage("system", OPTIONS.input_tmp)
   system_tgt.ResetFileMap()
-  system_diff = common.BlockDifference("system", system_tgt, src=None)
+  system_diff = common.BlockDifference("system", system_tgt, src=None, brotli=OPTIONS.brotli)
   system_diff.WriteScript(script, output_zip)
 
   boot_img = common.GetBootableImage(
@@ -541,13 +563,11 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
     vendor_tgt = GetImage("vendor", OPTIONS.input_tmp)
     vendor_tgt.ResetFileMap()
-    vendor_diff = common.BlockDifference("vendor", vendor_tgt)
+    vendor_diff = common.BlockDifference("vendor", vendor_tgt, brotli=OPTIONS.brotli)
     vendor_diff.WriteScript(script, output_zip)
 
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
-
-  device_specific.FullOTA_PostValidate()
 
   if OPTIONS.backuptool:
     script.ShowProgress(0.02, 10)
@@ -596,6 +616,8 @@ endif;
   metadata["ota-required-cache"] = str(script.required_cache)
   WriteMetadata(metadata, output_zip)
 
+  common.ZipWriteStr(output_zip, "system/build.prop",
+                     ""+input_zip.read("SYSTEM/build.prop"))
 
 def WritePolicyConfig(file_name, output_zip):
   common.ZipWrite(output_zip, file_name, os.path.basename(file_name))
@@ -725,7 +747,8 @@ def WriteBlockIncrementalOTAPackage(target_zip, source_zip, output_zip):
   system_diff = common.BlockDifference("system", system_tgt, system_src,
                                        check_first_block,
                                        version=blockimgdiff_version,
-                                       disable_imgdiff=disable_imgdiff)
+                                       disable_imgdiff=disable_imgdiff,
+                                       brotli=OPTIONS.brotli)
 
   if HasVendorPartition(target_zip):
     if not HasVendorPartition(source_zip):
@@ -741,7 +764,8 @@ def WriteBlockIncrementalOTAPackage(target_zip, source_zip, output_zip):
     vendor_diff = common.BlockDifference("vendor", vendor_tgt, vendor_src,
                                          check_first_block,
                                          version=blockimgdiff_version,
-                                         disable_imgdiff=disable_imgdiff)
+                                         disable_imgdiff=disable_imgdiff,
+                                         brotli=OPTIONS.brotli)
   else:
     vendor_diff = None
 
@@ -1005,13 +1029,13 @@ def WriteVerifyPackage(input_zip, output_zip):
 
   system_tgt = GetImage("system", OPTIONS.input_tmp)
   system_tgt.ResetFileMap()
-  system_diff = common.BlockDifference("system", system_tgt, src=None)
+  system_diff = common.BlockDifference("system", system_tgt, src=None, brotli=OPTIONS.brotli)
   system_diff.WriteStrictVerifyScript(script)
 
   if HasVendorPartition(input_zip):
     vendor_tgt = GetImage("vendor", OPTIONS.input_tmp)
     vendor_tgt.ResetFileMap()
-    vendor_diff = common.BlockDifference("vendor", vendor_tgt, src=None)
+    vendor_diff = common.BlockDifference("vendor", vendor_tgt, src=None, brotli=OPTIONS.brotli)
     vendor_diff.WriteStrictVerifyScript(script)
 
   # Device specific partitions, such as radio, bootloader and etc.
@@ -1023,7 +1047,7 @@ def WriteVerifyPackage(input_zip, output_zip):
   WriteMetadata(metadata, output_zip)
 
 
-def WriteABOTAPackageWithBrilloScript(target_file, output_file,
+def WriteABOTAPackageWithBrilloScript(input_zip, target_file, output_file,
                                       source_file=None):
   """Generate an Android OTA package that has A/B update payload."""
 
@@ -1136,6 +1160,11 @@ def WriteABOTAPackageWithBrilloScript(target_file, output_file,
          "--target_image", target_file]
   if source_file is not None:
     cmd.extend(["--source_image", source_file])
+  if OPTIONS.downgrade:
+    max_timestamp = GetBuildProp("ro.build.date.utc", OPTIONS.source_info_dict)
+  else:
+    max_timestamp = metadata["post-timestamp"]
+  cmd.extend(["--max_timestamp", max_timestamp])
   p1 = common.Run(cmd, stdout=log_file, stderr=subprocess.STDOUT)
   p1.communicate()
   assert p1.returncode == 0, "brillo_update_payload generate failed"
@@ -1222,6 +1251,9 @@ def WriteABOTAPackageWithBrilloScript(target_file, output_file,
   common.ZipWrite(output_zip, properties_file,
                   arcname="payload_properties.txt",
                   compress_type=zipfile.ZIP_STORED)
+
+  common.ZipWriteStr(output_zip, "system/build.prop",
+                     ""+input_zip.read("SYSTEM/build.prop"))
 
   # If dm-verity is supported for the device, copy contents of care_map
   # into A/B OTA package.
@@ -1381,6 +1413,8 @@ def main(argv):
       OPTIONS.override_device = a
     elif o in ("--backup"):
       OPTIONS.backuptool = bool(a.lower() == 'true')
+    elif o in ("--brotli"):
+      OPTIONS.brotli = bool(a.lower() == 'true')
     else:
       return False
     return True
@@ -1414,6 +1448,7 @@ def main(argv):
                                  "extracted_input_target_files=",
                                  "override_device=",
                                  "backup=",
+                                 "brotli="
                              ], extra_option_handler=option_handler)
 
   if len(args) != 2:
@@ -1474,7 +1509,9 @@ def main(argv):
         print("--- source info ---")
         common.DumpInfoDict(OPTIONS.source_info_dict)
 
+    input_zip = zipfile.ZipFile(args[0], "r")
     WriteABOTAPackageWithBrilloScript(
+        input_zip,
         target_file=args[0],
         output_file=args[1],
         source_file=OPTIONS.incremental_source)

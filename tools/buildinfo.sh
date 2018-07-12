@@ -60,6 +60,9 @@ if [ -n "$BUILD_THUMBPRINT" ] ; then
 fi
 echo "ro.build.characteristics=$TARGET_AAPT_CHARACTERISTICS"
 
-echo "ro.gzosp.device=$GZOSP_DEVICE"
+echo "ro.scorpion.device=$SCORPION_DEVICE"
+echo "ro.scorpion.maintainer=$SCORPION_MAINTAINER"
+echo "ro.scorpion.version=$SCORPION_VERSION"
+
 
 echo "# end build properties"

@@ -287,7 +287,7 @@ endif
 	$(hide) TARGET_BUILD_TYPE="$(TARGET_BUILD_VARIANT)" \
 			TARGET_BUILD_FLAVOR="$(TARGET_BUILD_FLAVOR)" \
 			TARGET_DEVICE="$(TARGET_DEVICE)" \
-			GZOSP_DEVICE="$(TARGET_DEVICE)" \
+			SCORPION_DEVICE="$(TARGET_DEVICE)" \
 			PRODUCT_NAME="$(TARGET_PRODUCT)" \
 			PRODUCT_BRAND="$(PRODUCT_BRAND)" \
 			PRODUCT_DEFAULT_LOCALE="$(call get-default-product-locale,$(PRODUCT_LOCALES))" \
@@ -320,6 +320,16 @@ endif
 			$(PRODUCT_BUILD_PROP_OVERRIDES) \
 	        bash $(BUILDINFO_SH) >> $@
 ifeq ($(TARGET_COPY_OUT_VENDOR),system)
+	$(hide) TARGET_DEVICE="$(TARGET_DEVICE)" \
+			PRODUCT_NAME="$(TARGET_PRODUCT)" \
+			PRODUCT_BRAND="$(PRODUCT_BRAND)" \
+			PRODUCT_MODEL="$(PRODUCT_MODEL)" \
+			PRODUCT_MANUFACTURER="$(PRODUCT_MANUFACTURER)" \
+			TARGET_BOOTLOADER_BOARD_NAME="$(TARGET_BOOTLOADER_BOARD_NAME)" \
+			TARGET_BOARD_PLATFORM="$(TARGET_BOARD_PLATFORM)" \
+	        bash $(VENDOR_BUILDINFO_SH) >> $@
+endif
+ifeq ($(TARGET_COPY_OUT_VENDOR),vendor)
 	$(hide) TARGET_DEVICE="$(TARGET_DEVICE)" \
 			PRODUCT_NAME="$(TARGET_PRODUCT)" \
 			PRODUCT_BRAND="$(PRODUCT_BRAND)" \
@@ -1134,16 +1144,12 @@ recovery_resources_common := $(call project-path-for,recovery)/res
 
 # Set recovery_density to the density bucket of the device.
 recovery_density := unknown
-ifneq (,$(TARGET_RECOVERY_DENSITY))
-recovery_density := $(filter %dpi,$(TARGET_RECOVERY_DENSITY))
-else
 ifneq (,$(PRODUCT_AAPT_PREF_CONFIG))
 # If PRODUCT_AAPT_PREF_CONFIG includes a dpi bucket, then use that value.
 recovery_density := $(filter %dpi,$(PRODUCT_AAPT_PREF_CONFIG))
 else
 # Otherwise, use the default medium density.
 recovery_densities := mdpi
-endif
 endif
 
 ifneq (,$(wildcard $(recovery_resources_common)-$(recovery_density)))
@@ -2198,9 +2204,6 @@ endif
 ifeq ($(TARGET_BUILD_PDK),true)
 build_ota_package := false
 endif
-ifeq ($(TARGET_FORCE_OTA_PACKAGE),true)
-build_ota_package := true
-endif
 
 ifeq ($(build_ota_package),true)
 OTATOOLS :=  $(HOST_OUT_EXECUTABLES)/minigzip \
@@ -2439,8 +2442,6 @@ ifneq (,$(INSTALLED_RECOVERYIMAGE_TARGET)$(filter true,$(BOARD_USES_RECOVERY_AS_
 	$(hide) mkdir -p $(zip_root)/$(PRIVATE_RECOVERY_OUT)
 	$(hide) $(call package_files-copy-root, \
 		$(TARGET_RECOVERY_ROOT_OUT),$(zip_root)/$(PRIVATE_RECOVERY_OUT)/RAMDISK)
-	@# OTA install helpers
-	$(hide) $(call package_files-copy-root, $(OUT)/install, $(zip_root)/INSTALL)
 ifdef INSTALLED_KERNEL_TARGET
 	$(hide) cp $(INSTALLED_KERNEL_TARGET) $(zip_root)/$(PRIVATE_RECOVERY_OUT)/kernel
 endif
@@ -2778,11 +2779,17 @@ endif
 ifeq ($(WITH_GMS),true)
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
 else
-ifneq ($(GZOSP_BUILD),)
+ifneq ($(SCORPION_BUILD),)
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
 else
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
 endif
+endif
+
+ifeq ($(ANDROID_COMPILE_WITH_BROTLI),true)
+    $(INTERNAL_OTA_PACKAGE_TARGET): brotli := true
+else
+    $(INTERNAL_OTA_PACKAGE_TARGET): brotli := false
 endif
 
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) \
@@ -2795,33 +2802,62 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) \
 	   -p $(HOST_OUT) \
 	   -k $(KEY_CERT_PAIR) \
 	   --backup=$(backuptool) \
+	   --brotli=$(brotli) \
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
-GZOSP_TARGET_PACKAGE := $(PRODUCT_OUT)/$(GZOSP_VERSION).zip
+SCORPION_TARGET_PACKAGE := $(PRODUCT_OUT)/$(SCORPION_VERSION).zip
 
-.PHONY: otapackage bacon gzosp
+.PHONY: otapackage bacon scorpion treble ota
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
-	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(GZOSP_TARGET_PACKAGE)
-	$(hide) $(MD5SUM) $(GZOSP_TARGET_PACKAGE) > $(GZOSP_TARGET_PACKAGE).md5sum
-	@echo -e "Package complete: $(GZOSP_TARGET_PACKAGE)"
-gzosp: otapackage
-	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(GZOSP_TARGET_PACKAGE)
-	$(hide) $(MD5SUM) $(GZOSP_TARGET_PACKAGE) > $(GZOSP_TARGET_PACKAGE).md5sum
+	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(SCORPION_TARGET_PACKAGE)
+	$(hide) $(MD5SUM) $(SCORPION_TARGET_PACKAGE) > $(SCORPION_TARGET_PACKAGE).md5sum
+	@echo -e "Package complete: $(SCORPION_TARGET_PACKAGE)"
+	$(hide) $(MD5SUM) $(SCORPION_TARGET_PACKAGE) > $(SCORPION_TARGET_PACKAGE).md5sum
 	@echo -e ${CL_RED}""${CL_RED}
-	@echo -e ${CL_RED}"    ▄██████▄   ▄███████▄   ▄██████▄     ▄████████    ▄███████▄ "${CL_RED}
-	@echo -e ${CL_RED}"   ███    ███ ██▀     ▄██ ███    ███   ███    ███   ███    ███ "${CL_RED}
-	@echo -e ${CL_RED}"   ███    █▀        ▄███▀ ███    ███   ███    █▀    ███    ███ "${CL_RED}
-	@echo -e ${CL_RED}"  ▄███         ▀█▀▄███▀▄▄ ███    ███   ███          ███    ███ "${CL_RED}
-	@echo -e ${CL_RED}" ▀▀███ ████▄    ▄███▀   ▀ ███    ███ ▀███████████ ▀█████████▀ "${CL_RED}
-	@echo -e ${CL_RED}"   ███    ███ ▄███▀       ███    ███          ███   ███ "${CL_RED}
-	@echo -e ${CL_RED}"   ███    ███ ███▄     ▄█ ███    ███    ▄█    ███   ███ "${CL_RED}
-	@echo -e ${CL_RED}"   ████████▀   ▀████████▀  ▀██████▀   ▄████████▀   ▄████▀ "${CL_RED}
-	@echo -e ${CL_RED}"                           A Ground Zero Roms "${CL_RED}
-	@echo -e ${CL_RED}"                                Project      "${CL_RED}
-	@echo -e "Package complete: $(GZOSP_TARGET_PACKAGE)"
+	@echo -e ${CL_RED}""${CL_RED}
+	@echo -e ${CL_RED}"  ________                         .__               "${CL_RED}
+	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____  "${CL_RED}
+	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ "${CL_RED}
+	@echo -e ${CL_RED}" /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "${CL_RED}
+	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  /"${CL_RED}
+	@echo -e ${CL_RED}"       \/     \/            |__|                  \/"${CL_RED}
+	@echo -e ${CL_RED}"Device Name: "${CL_BLU} $(TARGET_DEVICE)                                            ${CL_RST}
+	@echo -e ${CL_RED}"Package zip: "${CL_BLU} $(SCORPION_TARGET_PACKAGE)                                 ${CL_RST}
+	@echo -e ${CL_RED}"Package md5: "${CL_BLU}" `cat $(SCORPION_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
+	@echo -e ${CL_RED}"Package size:"${CL_BLU}" `du -h $(SCORPION_TARGET_PACKAGE) | cut -f 1`            "${CL_RST}
+	@echo -e "Package complete: $(SCORPION_TARGET_PACKAGE)"
+scorpion: bacon
 
+ota: bacon
+	$(hide) xdelta3 -f -e -9 -v -s /usr/share/nginx/html/latest-$(TARGET_DEVICE).zip $(SCORPION_TARGET_PACKAGE) /usr/share/nginx/html/latest-$(TARGET_DEVICE).zip.delta
+	$(hide) cp $(SCORPION_TARGET_PACKAGE) /usr/share/nginx/html/latest-$(TARGET_DEVICE).zip
+	@echo -e ${CL_RED}""${CL_RED}
+	@echo -e ${CL_RED}""${CL_RED}
+	@echo -e ${CL_RED}"  ________                         .__               "${CL_RED}
+	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____  "${CL_RED}
+	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ "${CL_RED}
+	@echo -e ${CL_RED}" /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "${CL_RED}
+	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  /"${CL_RED}
+	@echo -e ${CL_RED}"       \/     \/            |__|                  \/"${CL_RED}
+	@echo -e ${CL_RED}"Device Name: "${CL_BLU} $(TARGET_DEVICE)                                            ${CL_RST}
+	@echo -e ${CL_RED}"Delta: "${CL_BLU}"/usr/share/nginx/html/latest-$(TARGET_DEVICE).zip.delta"          ${CL_RST}
+	@echo -e ${CL_RED}"Delta size: "${CL_BLU}" `du -h /usr/share/nginx/html/latest-$(TARGET_DEVICE).zip | cut -f 1`            "${CL_RST}
+
+ifeq ($(PRODUCT_FULL_TREBLE),true)
+treble: systemimage bootimage
+	@echo ""
+	@echo ""
+	@echo -e ${CL_RED}"  ________                         .__               "${CL_RED}
+	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____  "${CL_RED}
+	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ "${CL_RED}
+	@echo -e ${CL_RED}" /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "${CL_RED}
+	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  /"${CL_RED}
+	@echo -e ${CL_RED}"       \/     \/            |__|                  \/"${CL_RED}
+	@echo -e ${CL_RED}"Device Name: "${CL_BLU} $(TARGET_DEVICE)                      ${CL_RST}
+	@echo -e $(CL_RED)"Treble Build: "${CL_BLU}"Images found in $OUT"                ${CL_RST}
+endif
 endif    # build_ota_package
 
 # -----------------------------------------------------------------
