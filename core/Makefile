@@ -2840,12 +2840,12 @@ bacon: otapackage
 	$(hide) $(MD5SUM) $(SCORPION_TARGET_PACKAGE) > $(SCORPION_TARGET_PACKAGE).md5sum
 	@echo -e ${CL_RED}""${CL_RED}
 	@echo -e ${CL_RED}""${CL_RED}
-	@echo -e ${CL_RED}"  ________                         .__               "${CL_RED}
-	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____  "${CL_RED}
-	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ "${CL_RED}
+	@echo -e ${CL_RED}"  ________                         .__                "${CL_RED}
+	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____   "${CL_RED}
+	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \  "${CL_RED}
 	@echo -e ${CL_RED}" /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "${CL_RED}
-	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  /"${CL_RED}
-	@echo -e ${CL_RED}"       \/     \/            |__|                  \/"${CL_RED}
+	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  / "${CL_RED}
+	@echo -e ${CL_RED}"       \/     \/            |__|                  \/  "${CL_RED}
 	@echo -e ${CL_RED}"Device Name: "${CL_BLU} $(TARGET_DEVICE)                                            ${CL_RST}
 	@echo -e ${CL_RED}"Package zip: "${CL_BLU} $(SCORPION_TARGET_PACKAGE)                                 ${CL_RST}
 	@echo -e ${CL_RED}"Package md5: "${CL_BLU}" `cat $(SCORPION_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
@@ -2858,12 +2858,12 @@ ota: bacon
 	$(hide) cp $(SCORPION_TARGET_PACKAGE) /usr/share/nginx/html/latest-$(TARGET_DEVICE).zip
 	@echo -e ${CL_RED}""${CL_RED}
 	@echo -e ${CL_RED}""${CL_RED}
-	@echo -e ${CL_RED}"  ________                         .__               "${CL_RED}
-	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____  "${CL_RED}
-	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ "${CL_RED}
+	@echo -e ${CL_RED}"  ________                         .__                "${CL_RED}
+	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____   "${CL_RED}
+	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \  "${CL_RED}
 	@echo -e ${CL_RED}" /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "${CL_RED}
-	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  /"${CL_RED}
-	@echo -e ${CL_RED}"       \/     \/            |__|                  \/"${CL_RED}
+	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  / "${CL_RED}
+	@echo -e ${CL_RED}"       \/     \/            |__|                  \/  "${CL_RED}
 	@echo -e ${CL_RED}"Device Name: "${CL_BLU} $(TARGET_DEVICE)                                            ${CL_RST}
 	@echo -e ${CL_RED}"Delta: "${CL_BLU}"/usr/share/nginx/html/latest-$(TARGET_DEVICE).zip.delta"          ${CL_RST}
 	@echo -e ${CL_RED}"Delta size: "${CL_BLU}" `du -h /usr/share/nginx/html/latest-$(TARGET_DEVICE).zip | cut -f 1`            "${CL_RST}
@@ -2872,12 +2872,12 @@ ifeq ($(PRODUCT_FULL_TREBLE),true)
 treble: systemimage bootimage
 	@echo ""
 	@echo ""
-	@echo -e ${CL_RED}"  ________                         .__               "${CL_RED}
-	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____  "${CL_RED}
-	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \ "${CL_RED}
+	@echo -e ${CL_RED}"  ________                         .__                "${CL_RED}
+	@echo -e ${CL_RED}" /   ____/ ____  _________________ |__| ____   ____   "${CL_RED}
+	@echo -e ${CL_RED}" \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \  "${CL_RED}
 	@echo -e ${CL_RED}" /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "${CL_RED}
-	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  /"${CL_RED}
-	@echo -e ${CL_RED}"       \/     \/            |__|                  \/"${CL_RED}
+	@echo -e ${CL_RED}"/______  /\___  >____/|__|  |   __/|__|\____/|___|  / "${CL_RED}
+	@echo -e ${CL_RED}"       \/     \/            |__|                  \/  "${CL_RED}
 	@echo -e ${CL_RED}"Device Name: "${CL_BLU} $(TARGET_DEVICE)                      ${CL_RST}
 	@echo -e $(CL_RED)"Treble Build: "${CL_BLU}"Images found in $OUT"                ${CL_RST}
 endif
