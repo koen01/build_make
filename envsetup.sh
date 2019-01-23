@@ -139,11 +139,11 @@ function check_product()
     fi
 
     if (echo -n $1 | grep -q -e "^du_") ; then
-       DU_BUILD=$(echo -n $1 | sed -e 's/^du_//g')
+       SCORPION_BUILD=$(echo -n $1 | sed -e 's/^du_//g')
     else
-       DU_BUILD=
+      SCORPION_BUILD=
     fi
-    export DU_BUILD
+    export SCORPION_BUILD
 
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \
@@ -569,9 +569,28 @@ function print_lunch_menu()
 {
     local uname=$(uname)
     echo
-    echo "You're building on" $uname
-    echo
-    echo "Lunch menu... pick a combo:"
+
+    echo ""
+    tput setaf 1;
+    tput bold;
+    echo "            ******************************************************"
+    echo "              ________                         .__                "
+    echo "             /   ____/ ____  _________________ |__| ____   ____   "
+    echo "             \____  \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \  "
+    echo "             /       \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ "
+    echo "            /______  /\___  >____/|__|  |   __/|__|\____/|___|  / "
+    echo "                   \/     \/            |__|                  \/  "
+    echo "                                                                  "
+    echo "                                Feel The Sting                    "
+    echo "            ******************************************************"
+    tput sgr0;
+    echo ""
+    echo "                          Welcome to the device menu                      "
+    echo ""
+    tput bold;
+    echo "     Below are all the devices currently available to be compiled     "
+    tput sgr0;
+    echo ""
 
     local i=1
     local choice

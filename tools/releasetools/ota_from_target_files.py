@@ -813,26 +813,16 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   #script.Print("Target: {}".format(target_info.fingerprint))
   #script.Print("Target: %s" % target_fp)
 
-  script.Print(" ")
-  script.Print("             || DIRTY UNICORNS ||            ");
-  script.Print(" ")
-  script.Print(" DDDDDDDDDDDDD         UUUUUUUU     UUUUUUUU ");
-  script.Print(" D::::::::::::DDD      U::::::U     U::::::U ");
-  script.Print(" D:::::::::::::::DD    U::::::U     U::::::U ");
-  script.Print(" DDD:::::DDDDD:::::D   UU:::::U     U:::::UU ");
-  script.Print("   D:::::D    D:::::D   U:::::U     U:::::U  ");
-  script.Print("   D:::::D     D:::::D  U:::::U     U:::::U  ");
-  script.Print("   D:::::D     D:::::D  U:::::U     U:::::U  ");
-  script.Print("   D:::::D     D:::::D  U:::::U     U:::::U  ");
-  script.Print("   D:::::D     D:::::D  U:::::U     U:::::U  ");
-  script.Print("   D:::::D     D:::::D  U:::::U     U:::::U  ");
-  script.Print("   D:::::D     D:::::D  U:::::U     U:::::U  ");
-  script.Print("   D:::::D    D:::::D   U::::::U   U::::::U  ");
-  script.Print(" DDD:::::DDDDD:::::D    U:::::::UUU:::::::U  ");
-  script.Print(" D:::::::::::::::DD      UU:::::::::::::UU   ");
-  script.Print(" D::::::::::::DDD          UU:::::::::UU     ");
-  script.Print(" DDDDDDDDDDDDD               UUUUUUUUU       ");
-  script.Print(" ")
+  script.Print(" *************************************************  ");
+  script.Print("  ______                         .__                ");
+  script.Print(" /   __/ ____  _________________ |__| ____   ____   ");
+  script.Print(" \___ \_/ ___\/  _ \_  __ \____ \|  |/  _ \ /    \  ");
+  script.Print(" /     \  \__(  <_> )  | \/  |_> >  (  <_> )   |  \ ");
+  script.Print("/____  /\___  >____/|__|  |   __/|__|\____/|___|  / ");
+  script.Print("     \/     \/            |__|                  \/  ");
+  script.Print("                                                    ");
+  script.Print("                  Feel The Sting                    ");
+  script.Print(" *************************************************  ");
 
   android_version = target_info.GetBuildProp("ro.build.version.release")
   security_patch = target_info.GetBuildProp("ro.build.version.security_patch")
