@@ -138,8 +138,8 @@ function check_product()
         return
     fi
 
-    if (echo -n $1 | grep -q -e "^du_") ; then
-       SCORPION_BUILD=$(echo -n $1 | sed -e 's/^du_//g')
+    if (echo -n $1 | grep -q -e "^scorpion_") ; then
+       SCORPION_BUILD=$(echo -n $1 | sed -e 's/^scorpion_//g')
     else
       SCORPION_BUILD=
     fi

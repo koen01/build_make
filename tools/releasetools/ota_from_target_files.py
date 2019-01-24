@@ -830,7 +830,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   build_type = target_info.GetBuildProp("ro.build.type")
   device = target_info.GetBuildProp("ro.product.device")
 
-  script.Print(" =============================================");
+  script.Print(" *************************************************  ");
   script.Print(" Android version : %s"%(android_version));
   script.Print("");
   script.Print(" Security patch  : %s"%(security_patch));
@@ -839,9 +839,9 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   script.Print("");
   script.Print(" Build type      : %s"%(build_type));
   script.Print("");
-  script.Print(" =============================================");
+  script.Print(" *************************************************  ");
   script.Print(" Device          : %s"%(device));
-  script.Print(" =============================================");
+  script.Print(" *************************************************  ");
 
   script.AppendExtra("ifelse(is_mounted(\"/system\"), unmount(\"/system\"));")
   device_specific.FullOTA_InstallBegin()
@@ -896,7 +896,8 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
 
   script.Print(" ")
-  script.Print("Flashing boot image..")
+  script.Print("Enjoy Scorpion Rom..")
+  script.Print(" ")
 
   if OPTIONS.backuptool:
     script.ShowProgress(0.02, 10)
