@@ -1661,3 +1661,5 @@ fi
 export ANDROID_BUILD_TOP=$(gettop)
 
 . $ANDROID_BUILD_TOP/vendor/extras/build/envsetup.sh
+
+export SKIP_ABI_CHECKS=true
